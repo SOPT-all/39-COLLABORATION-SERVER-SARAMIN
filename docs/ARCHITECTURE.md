@@ -92,10 +92,10 @@ Entity는 Service 계층을 벗어나지 않는다.
 
 | 프로파일 | 용도 | DB |
 |---|---|---|
-| `local` | 로컬 개발 | 환경변수로 주입 |
+| `local` | 로컬 개발 | MySQL 8 (접속 정보는 환경변수로 주입) |
 | `test` | CI 테스트 | H2 인메모리 |
 
-DB가 확정되면 드라이버 의존성과 `DB_URL` 만 교체한다.
+운영 DB는 MySQL 8이다. 드라이버는 `mysql-connector-j` 를 `runtimeOnly` 로 사용한다.
 
 ## 성능 고려사항
 
