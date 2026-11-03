@@ -16,7 +16,7 @@
 
 - Java 21 / Spring Boot 4.1.2
 - Spring Data JPA
-- DB: 미정 (MySQL 또는 PostgreSQL)
+- DB: MySQL 8
 - springdoc-openapi (Swagger)
 - 패키지 루트: `org.sopt.collaboration`
 
