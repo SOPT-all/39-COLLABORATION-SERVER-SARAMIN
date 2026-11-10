@@ -103,7 +103,7 @@ Entity는 Service 계층을 벗어나지 않는다.
 | 워크플로 | 트리거 | 동작 |
 |---|---|---|
 | `ci.yml` | `main`·`develop` 대상 PR | `./gradlew clean build` (test 프로파일) |
-| `cd.yml` | `main` push, 수동 실행 | 빌드 → Docker 이미지를 GHCR에 push → EC2에 SSH로 접속해 컨테이너 교체 |
+| `cd.yml` | `develop` push, 수동 실행 | 빌드 → Docker 이미지를 GHCR에 push → EC2에 SSH로 접속해 컨테이너 교체 |
 
 CD에 필요한 GitHub Secrets
 
