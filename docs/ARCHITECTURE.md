@@ -94,8 +94,29 @@ Entity는 Service 계층을 벗어나지 않는다.
 |---|---|---|
 | `local` | 로컬 개발 | MySQL 8 (접속 정보는 환경변수로 주입) |
 | `test` | CI 테스트 | H2 인메모리 |
+| `prod` | 운영 서버 | AWS RDS MySQL 8 (접속 정보는 환경변수로 주입) |
 
 운영 DB는 MySQL 8이다. 드라이버는 `mysql-connector-j` 를 `runtimeOnly` 로 사용한다.
+
+### CI/CD
+
+| 워크플로 | 트리거 | 동작 |
+|---|---|---|
+| `ci.yml` | `main`·`develop` 대상 PR | `./gradlew clean build` (test 프로파일) |
+| `cd.yml` | `main` push, 수동 실행 | 빌드 → Docker 이미지를 GHCR에 push → EC2에 SSH로 접속해 컨테이너 교체 |
+
+CD에 필요한 GitHub Secrets
+
+| Secret | 설명 |
+|---|---|
+| `EC2_HOST` | 배포 서버 주소. 비어 있으면 이미지 push까지만 하고 배포는 건너뛴다 |
+| `EC2_USERNAME` | SSH 사용자 (예: `ubuntu`) |
+| `EC2_SSH_KEY` | SSH 개인키 (PEM 전체) |
+| `DB_URL` | RDS JDBC URL (예: `jdbc:mysql://{endpoint}:3306/{db}`) |
+| `DB_USERNAME` | RDS 사용자 |
+| `DB_PASSWORD` | RDS 비밀번호 |
+
+EC2에는 Docker가 설치되어 있어야 하고, 보안 그룹에서 8080 포트와 RDS 접근(3306)을 열어야 한다.
 
 ## 성능 고려사항
 
