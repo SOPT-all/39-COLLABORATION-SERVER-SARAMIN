@@ -11,11 +11,16 @@ public class CorsConfig implements WebMvcConfigurer {
 
     private final String[] allowedOriginPatterns;
 
-    public CorsConfig(@Value("${cors.allowed-origins}") String[] allowedOrigins) {
+    public CorsConfig(@Value("${app.cors.allowed-origins}") String[] allowedOrigins) {
         this.allowedOriginPatterns = Arrays.stream(allowedOrigins)
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
                 .toArray(String[]::new);
+
+        // 비어 있으면 CorsRegistry 기본값(모든 출처 허용)이 적용되므로 기동을 막는다
+        if (this.allowedOriginPatterns.length == 0) {
+            throw new IllegalStateException("app.cors.allowed-origins 가 비어 있습니다.");
+        }
     }
 
     @Override
