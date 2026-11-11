@@ -115,8 +115,14 @@ CD에 필요한 GitHub Secrets
 | `DB_URL` | RDS JDBC URL (예: `jdbc:mysql://{endpoint}:3306/{db}`) |
 | `DB_USERNAME` | RDS 사용자 |
 | `DB_PASSWORD` | RDS 비밀번호 |
+| `CORS_ALLOWED_ORIGINS` | 추가로 허용할 프론트 출처(쉼표 구분, 패턴 가능). 예: `https://xxx.vercel.app,https://xxx-*.vercel.app` |
 
-EC2에는 Docker가 설치되어 있어야 하고, 보안 그룹에서 8080 포트와 RDS 접근(3306)을 열어야 한다.
+서버 구성(nginx·HTTPS·보안 그룹)은 `docs/DEPLOYMENT.md` 참조.
+
+### CORS
+
+`CorsConfig` 가 `cors.allowed-origins` 출처 패턴을 허용한다.
+`localhost:3000`, `localhost:5173` 은 항상 허용하고, 그 외 출처는 `CORS_ALLOWED_ORIGINS` 환경변수로 추가한다.
 
 ## 성능 고려사항
 
