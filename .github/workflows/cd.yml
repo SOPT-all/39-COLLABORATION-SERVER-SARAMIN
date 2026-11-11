@@ -82,22 +82,24 @@ jobs:
           DB_URL: ${{ secrets.DB_URL }}
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          CORS_ALLOWED_ORIGINS: ${{ secrets.CORS_ALLOWED_ORIGINS }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: IMAGE,GHCR_USER,GHCR_TOKEN,DB_URL,DB_USERNAME,DB_PASSWORD
+          envs: IMAGE,GHCR_USER,GHCR_TOKEN,DB_URL,DB_USERNAME,DB_PASSWORD,CORS_ALLOWED_ORIGINS
           script: |
             set -e
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             docker pull "$IMAGE"
             docker rm -f collaboration 2>/dev/null || true
             docker run -d --name collaboration --restart unless-stopped \
-              -p 8080:8080 \
+              -p 127.0.0.1:8080:8080 \
               -e SPRING_PROFILES_ACTIVE=prod \
               -e DB_URL="$DB_URL" \
               -e DB_USERNAME="$DB_USERNAME" \
               -e DB_PASSWORD="$DB_PASSWORD" \
+              -e CORS_ALLOWED_ORIGINS="$CORS_ALLOWED_ORIGINS" \
               "$IMAGE"
             docker logout ghcr.io
             docker image prune -f
