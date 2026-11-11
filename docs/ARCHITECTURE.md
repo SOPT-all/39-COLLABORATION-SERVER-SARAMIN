@@ -121,7 +121,7 @@ CD에 필요한 GitHub Secrets
 
 ### CORS
 
-`CorsConfig` 가 `cors.allowed-origins` 출처 패턴을 허용한다.
+`CorsConfig` 가 `app.cors.allowed-origins` 출처 패턴을 허용한다.
 `localhost:3000`, `localhost:5173` 은 항상 허용하고, 그 외 출처는 `CORS_ALLOWED_ORIGINS` 환경변수로 추가한다.
 
 ## 성능 고려사항
