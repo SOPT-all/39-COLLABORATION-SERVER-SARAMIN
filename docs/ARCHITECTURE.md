@@ -45,7 +45,8 @@ org.sopt.collaboration
     ├── jobposting
     ├── keyword
     ├── bookmark
-    └── document
+    ├── document
+    └── application
 
 각 도메인은 `controller / service / repository / entity / dto` 5계층을 가진다.
 

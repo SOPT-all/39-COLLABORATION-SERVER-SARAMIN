@@ -102,6 +102,7 @@ Angular 컨벤션 기반. **싱글 라인으로 작성한다.**
 | `keyword` | 마이핏 키워드 |
 | `bookmark` | 공고 저장 |
 | `document` | 서류 패키지 |
+| `application` | 내 지원 공고 |
 | `common` | 공통 모듈 |
 | `config` | 설정 |
 | `deps` | 의존성 |
