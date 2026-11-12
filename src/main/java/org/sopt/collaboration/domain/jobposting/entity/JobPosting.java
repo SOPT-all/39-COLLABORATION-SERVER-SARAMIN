@@ -8,11 +8,15 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.sopt.collaboration.domain.document.entity.DocumentType;
+import org.sopt.collaboration.domain.user.entity.User;
 import org.sopt.collaboration.global.common.BaseTimeEntity;
 
 @Entity
@@ -155,5 +159,27 @@ public class JobPosting extends BaseTimeEntity {
                 coverLetterRequired,
                 careerRequired
         );
+    }
+
+    // 요구 서류 목록. null 은 요구하지 않은 것으로 본다
+    public List<DocumentType> getRequiredDocuments() {
+        List<DocumentType> requiredDocuments = new ArrayList<>();
+        if (Boolean.TRUE.equals(resumeRequired)) {
+            requiredDocuments.add(DocumentType.RESUME);
+        }
+        if (Boolean.TRUE.equals(coverLetterRequired)) {
+            requiredDocuments.add(DocumentType.COVER_LETTER);
+        }
+        if (Boolean.TRUE.equals(careerRequired)) {
+            requiredDocuments.add(DocumentType.CAREER_DESCRIPTION);
+        }
+        return requiredDocuments;
+    }
+
+    // 요구 서류 중 사용자가 보유하지 않은 서류 목록
+    public List<DocumentType> getMissingDocuments(User user) {
+        return getRequiredDocuments().stream()
+                .filter(documentType -> !user.hasDocument(documentType))
+                .toList();
     }
 }
