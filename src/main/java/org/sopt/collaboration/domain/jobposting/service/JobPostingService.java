@@ -24,6 +24,7 @@ import org.sopt.collaboration.domain.user.repository.UserKeywordRepository;
 import org.sopt.collaboration.domain.user.repository.UserRepository;
 import org.sopt.collaboration.global.exception.BusinessException;
 import org.sopt.collaboration.global.exception.ErrorCode;
+import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,11 +39,11 @@ public class JobPostingService {
     private final UserRepository userRepository;
     private final UserKeywordRepository userKeywordRepository;
 
-    public List<JobPostingResponse> getViewedJobPostings(Long userId) {
+    public List<JobPostingResponse> getViewedJobPostings(Long userId, int size) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        List<JobPosting> jobPostings = jobPostingRepository.findAllByIsViewedTrueOrderByIdDesc();
+        List<JobPosting> jobPostings = jobPostingRepository.findAllByIsViewedTrueOrderByIdDesc(Limit.of(size));
         if (jobPostings.isEmpty()) {
             return List.of();
         }
