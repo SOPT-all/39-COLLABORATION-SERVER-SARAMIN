@@ -40,6 +40,13 @@ public class User extends BaseTimeEntity {
         return new User(hasResume, hasCoverLetter, hasCareer);
     }
 
+    // 서류 보유 체크 상태를 한 번에 갱신한다 (세 값 모두 현재 상태 그대로 받는다)
+    public void updateDocuments(boolean hasResume, boolean hasCoverLetter, boolean hasCareer) {
+        this.hasResume = hasResume;
+        this.hasCoverLetter = hasCoverLetter;
+        this.hasCareer = hasCareer;
+    }
+
     // 서류 보유 여부. null 은 보유하지 않은 것으로 본다
     public boolean hasDocument(DocumentType documentType) {
         Boolean has = switch (documentType) {
