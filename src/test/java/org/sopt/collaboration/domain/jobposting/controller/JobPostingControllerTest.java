@@ -32,4 +32,17 @@ class JobPostingControllerTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value(400));
     }
+
+    @Test
+    @DisplayName("추천 공고 조회 시 size가 1 미만이면 400을 응답한다")
+    void 추천_공고_size가_1_미만이면_400을_응답한다() throws Exception {
+        // given
+        String size = "0";
+
+        // when & then
+        mockMvc.perform(get("/api/v1/job-postings/recommended").param("size", size))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value(400));
+    }
 }
