@@ -6,9 +6,14 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+    defer-datasource-initialization: true
     properties:
       hibernate:
         format_sql: true
+  sql:
+    init:
+      mode: always
+      encoding: UTF-8
 
 # app. 접두사 필수: cors.allowed-origins 로 두면 환경변수 CORS_ALLOWED_ORIGINS 가
 # relaxed binding 으로 이 값 전체를 덮어써 localhost 기본값이 사라진다
