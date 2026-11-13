@@ -8,6 +8,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.sopt.collaboration.domain.document.entity.DocumentType;
 import org.sopt.collaboration.global.common.BaseTimeEntity;
 
 @Entity
@@ -37,5 +38,15 @@ public class User extends BaseTimeEntity {
 
     public static User create(Boolean hasResume, Boolean hasCoverLetter, Boolean hasCareer) {
         return new User(hasResume, hasCoverLetter, hasCareer);
+    }
+
+    // 서류 보유 여부. null 은 보유하지 않은 것으로 본다
+    public boolean hasDocument(DocumentType documentType) {
+        Boolean has = switch (documentType) {
+            case RESUME -> hasResume;
+            case COVER_LETTER -> hasCoverLetter;
+            case CAREER_DESCRIPTION -> hasCareer;
+        };
+        return Boolean.TRUE.equals(has);
     }
 }
