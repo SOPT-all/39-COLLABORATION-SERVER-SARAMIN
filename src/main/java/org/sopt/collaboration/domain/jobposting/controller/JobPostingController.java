@@ -3,14 +3,20 @@ package org.sopt.collaboration.domain.jobposting.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.sopt.collaboration.domain.jobposting.dto.JobPostingResponse;
+import org.sopt.collaboration.domain.jobposting.dto.SearchJobPostingRequest;
+import org.sopt.collaboration.domain.jobposting.dto.SearchJobPostingResponse;
 import org.sopt.collaboration.domain.jobposting.service.JobPostingService;
 import org.sopt.collaboration.global.common.ApiResponse;
 import org.sopt.collaboration.global.common.CurrentUser;
+import org.sopt.collaboration.global.common.PageResponse;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,5 +41,18 @@ public class JobPostingController {
             @RequestParam(defaultValue = "3") @Min(1) int size
     ) {
         return ApiResponse.success(jobPostingService.getViewedJobPostings(CurrentUser.ID, size));
+    }
+
+    @Operation(
+            summary = "공고 검색",
+            description = "모집 중인 공고를 검색어(제목·회사명 부분 일치)와 키워드 이름으로 검색해 offset 페이지로 준다. "
+                    + "키워드를 보내면 하나 이상 일치하는 공고만 주며, "
+                    + "일치 키워드 수 내림차순 → 마감 임박순으로 정렬한다."
+    )
+    @GetMapping("/search")
+    public ApiResponse<PageResponse<SearchJobPostingResponse>> searchJobPostings(
+            @ParameterObject @Valid @ModelAttribute SearchJobPostingRequest request
+    ) {
+        return ApiResponse.success(jobPostingService.searchJobPostings(request));
     }
 }
