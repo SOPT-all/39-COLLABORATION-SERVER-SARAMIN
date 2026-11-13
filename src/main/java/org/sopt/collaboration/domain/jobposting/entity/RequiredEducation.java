@@ -8,7 +8,10 @@ import lombok.Getter;
 @Getter
 public enum RequiredEducation {
 
+    HIGH_SCHOOL_GRADUATE("고졸"),
+    COLLEGE_GRADUATE("초대졸"),
     UNIVERSITY_GRADUATE("대졸"),
+    MASTER("석사"),
     NOT_REQUIRED("학력무관");
 
     private final String description;
