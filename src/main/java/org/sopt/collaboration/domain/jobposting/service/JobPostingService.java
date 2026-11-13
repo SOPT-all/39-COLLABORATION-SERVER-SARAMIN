@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.sopt.collaboration.domain.application.entity.Application;
 import org.sopt.collaboration.domain.application.repository.ApplicationRepository;
 import org.sopt.collaboration.domain.jobposting.dto.JobPostingResponse;
+import org.sopt.collaboration.domain.jobposting.dto.RecommendedJobPostingResponse;
 import org.sopt.collaboration.domain.jobposting.dto.SearchJobPostingRequest;
 import org.sopt.collaboration.domain.jobposting.dto.SearchJobPostingResponse;
 import org.sopt.collaboration.domain.jobposting.entity.DeadlineType;
@@ -27,8 +28,10 @@ import org.sopt.collaboration.domain.jobposting.entity.JobPosting;
 import org.sopt.collaboration.domain.jobposting.entity.JobPostingStatus;
 import org.sopt.collaboration.domain.jobposting.repository.JobKeywordRepository;
 import org.sopt.collaboration.domain.jobposting.repository.JobPostingRepository;
+import org.sopt.collaboration.domain.keyword.dto.KeywordResponse;
 import org.sopt.collaboration.domain.keyword.entity.Keyword;
 import org.sopt.collaboration.domain.user.entity.User;
+import org.sopt.collaboration.domain.user.entity.UserKeyword;
 import org.sopt.collaboration.domain.user.repository.UserKeywordRepository;
 import org.sopt.collaboration.domain.user.repository.UserRepository;
 import org.sopt.collaboration.global.common.PageResponse;
@@ -70,6 +73,34 @@ public class JobPostingService {
         return toResponses(user, jobPostings);
     }
 
+    /**
+     * 내 MY FIT 키워드와 일치 개수가 많은 공고를 추천한다 (규칙 기반 교집합, 추정 없음).
+     * 모집 중이고 아직 마감되지 않았으며 키워드가 하나 이상 일치하는 공고만 대상이다.
+     */
+    public RecommendedJobPostingResponse getRecommendedJobPostings(Long userId, int size) {
+        User user = findUser(userId);
+        List<Keyword> myKeywords = userKeywordRepository.findAllWithKeywordByUserId(userId).stream()
+                .map(UserKeyword::getKeyword)
+                .toList();
+        List<KeywordResponse> myFitKeywords = myKeywords.stream()
+                .map(KeywordResponse::from)
+                .toList();
+        if (myKeywords.isEmpty()) {
+            return RecommendedJobPostingResponse.from(myFitKeywords, List.of());
+        }
+
+        Set<Long> myKeywordIds = myKeywords.stream()
+                .map(Keyword::getId)
+                .collect(toCollection(HashSet::new));
+        List<JobPosting> jobPostings = jobPostingRepository.findRecommended(
+                JobPostingStatus.OPEN,
+                myKeywordIds,
+                LocalDateTime.now(),
+                Limit.of(size)
+        );
+        return RecommendedJobPostingResponse.from(myFitKeywords, toResponses(user, jobPostings, myKeywordIds));
+    }
+
     private User findUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
@@ -79,11 +110,19 @@ public class JobPostingService {
         if (jobPostings.isEmpty()) {
             return List.of();
         }
+        Set<Long> myKeywordIds = new HashSet<>(userKeywordRepository.findKeywordIdsByUserId(user.getId()));
+        return toResponses(user, jobPostings, myKeywordIds);
+    }
+
+    // 내 키워드 id 를 이미 조회한 경우 다시 조회하지 않도록 받는다
+    private List<JobPostingResponse> toResponses(User user, List<JobPosting> jobPostings, Set<Long> myKeywordIds) {
+        if (jobPostings.isEmpty()) {
+            return List.of();
+        }
 
         // 공고 수와 관계없이 키워드·지원 내역을 각각 쿼리 1번으로 조회한다
         List<Long> jobPostingIds = toIds(jobPostings);
         Map<Long, List<Keyword>> keywordsByJobPosting = findKeywordsByJobPosting(jobPostingIds);
-        Set<Long> myKeywordIds = new HashSet<>(userKeywordRepository.findKeywordIdsByUserId(user.getId()));
         Map<Long, Application> applicationByJobPosting = applicationRepository
                 .findAllByUserIdAndJobPostingIdIn(user.getId(), jobPostingIds)
                 .stream()
