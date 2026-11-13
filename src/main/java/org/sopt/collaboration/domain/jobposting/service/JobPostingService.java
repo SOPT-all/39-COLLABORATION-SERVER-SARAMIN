@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -14,8 +15,10 @@ import lombok.RequiredArgsConstructor;
 import org.sopt.collaboration.domain.application.entity.Application;
 import org.sopt.collaboration.domain.application.repository.ApplicationRepository;
 import org.sopt.collaboration.domain.jobposting.dto.JobPostingResponse;
+import org.sopt.collaboration.domain.jobposting.entity.DeadlineType;
 import org.sopt.collaboration.domain.jobposting.entity.JobKeyword;
 import org.sopt.collaboration.domain.jobposting.entity.JobPosting;
+import org.sopt.collaboration.domain.jobposting.entity.JobPostingStatus;
 import org.sopt.collaboration.domain.jobposting.repository.JobKeywordRepository;
 import org.sopt.collaboration.domain.jobposting.repository.JobPostingRepository;
 import org.sopt.collaboration.domain.keyword.entity.Keyword;
@@ -40,10 +43,29 @@ public class JobPostingService {
     private final UserKeywordRepository userKeywordRepository;
 
     public List<JobPostingResponse> getViewedJobPostings(Long userId, int size) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
+        User user = findUser(userId);
         List<JobPosting> jobPostings = jobPostingRepository.findAllByIsViewedTrueOrderByIdDesc(Limit.of(size));
+        return toResponses(user, jobPostings);
+    }
+
+    // 모집 중이고 아직 마감되지 않은 날짜 마감 공고. 채용 시 마감 공고는 마감일이 없어 제외한다
+    public List<JobPostingResponse> getDeadlineSoonJobPostings(Long userId, int size) {
+        User user = findUser(userId);
+        List<JobPosting> jobPostings = jobPostingRepository.findDeadlineSoon(
+                JobPostingStatus.OPEN,
+                DeadlineType.DATE,
+                LocalDateTime.now(),
+                Limit.of(size)
+        );
+        return toResponses(user, jobPostings);
+    }
+
+    private User findUser(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    private List<JobPostingResponse> toResponses(User user, List<JobPosting> jobPostings) {
         if (jobPostings.isEmpty()) {
             return List.of();
         }
@@ -59,9 +81,9 @@ public class JobPostingService {
                         jobKeyword -> jobKeyword.getJobPosting().getId(),
                         mapping(JobKeyword::getKeyword, toList())
                 ));
-        Set<Long> myKeywordIds = new HashSet<>(userKeywordRepository.findKeywordIdsByUserId(userId));
+        Set<Long> myKeywordIds = new HashSet<>(userKeywordRepository.findKeywordIdsByUserId(user.getId()));
         Map<Long, Application> applicationByJobPosting = applicationRepository
-                .findAllByUserIdAndJobPostingIdIn(userId, jobPostingIds)
+                .findAllByUserIdAndJobPostingIdIn(user.getId(), jobPostingIds)
                 .stream()
                 .collect(toMap(application -> application.getJobPosting().getId(), Function.identity()));
 

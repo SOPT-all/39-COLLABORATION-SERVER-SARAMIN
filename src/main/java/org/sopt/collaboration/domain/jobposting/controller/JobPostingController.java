@@ -36,4 +36,18 @@ public class JobPostingController {
     ) {
         return ApiResponse.success(jobPostingService.getViewedJobPostings(CurrentUser.ID, size));
     }
+
+    @Operation(
+            summary = "마감 임박 공고 목록 조회",
+            description = "모집 중이고 아직 마감되지 않은 공고를 마감일이 가까운 순으로 size 개까지 조회한다. "
+                    + "채용 시 마감 공고는 마감일이 없어 제외한다. "
+                    + "응답 형식은 조회한 공고 목록과 같다."
+    )
+    @GetMapping("/deadline-soon")
+    public ApiResponse<List<JobPostingResponse>> getDeadlineSoonJobPostings(
+            @Parameter(description = "조회 개수 (1 이상)")
+            @RequestParam(defaultValue = "3") @Min(1) int size
+    ) {
+        return ApiResponse.success(jobPostingService.getDeadlineSoonJobPostings(CurrentUser.ID, size));
+    }
 }
