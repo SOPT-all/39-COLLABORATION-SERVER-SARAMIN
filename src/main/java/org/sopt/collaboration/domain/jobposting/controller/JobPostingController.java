@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Min;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.sopt.collaboration.domain.jobposting.dto.JobPostingResponse;
+import org.sopt.collaboration.domain.jobposting.dto.RecommendedJobPostingResponse;
 import org.sopt.collaboration.domain.jobposting.dto.SearchJobPostingRequest;
 import org.sopt.collaboration.domain.jobposting.dto.SearchJobPostingResponse;
 import org.sopt.collaboration.domain.jobposting.service.JobPostingService;
@@ -55,6 +56,21 @@ public class JobPostingController {
             @RequestParam(defaultValue = "3") @Min(1) int size
     ) {
         return ApiResponse.success(jobPostingService.getDeadlineSoonJobPostings(CurrentUser.ID, size));
+    }
+
+    @Operation(
+            summary = "추천 공고 목록 조회",
+            description = "내 MY FIT 키워드와 일치하는 개수가 많은 공고를 size 개까지 조회한다. "
+                    + "모집 중이고 아직 마감되지 않았으며 키워드가 하나 이상 일치하는 공고만 주고, "
+                    + "일치 키워드 수 내림차순 → 마감 임박순(채용 시 마감은 뒤로)으로 정렬한다. "
+                    + "내 MY FIT 키워드 목록을 함께 주며, 공고 카드 형식은 조회한 공고 목록과 같다."
+    )
+    @GetMapping("/recommended")
+    public ApiResponse<RecommendedJobPostingResponse> getRecommendedJobPostings(
+            @Parameter(description = "조회 개수 (1 이상)")
+            @RequestParam(defaultValue = "3") @Min(1) int size
+    ) {
+        return ApiResponse.success(jobPostingService.getRecommendedJobPostings(CurrentUser.ID, size));
     }
 
     @Operation(
