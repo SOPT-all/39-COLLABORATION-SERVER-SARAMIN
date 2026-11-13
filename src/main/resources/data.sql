@@ -366,7 +366,10 @@ INSERT IGNORE INTO user_keyword (user_id, keyword_id, created_at, updated_at) VA
 (1, 1, NOW(), NOW()),
 (1, 36, NOW(), NOW()),
 (1, 37, NOW(), NOW()),
-(1, 52, NOW(), NOW());
+(1, 52, NOW(), NOW()),
+(1, 54, NOW(), NOW()),
+(1, 60, NOW(), NOW()),
+(1, 61, NOW(), NOW());
 
 INSERT IGNORE INTO application (user_id, job_posting_id, created_at, updated_at) VALUES
 (1, 1, '2026-11-01 15:00:00', '2026-11-01 15:00:00'),
