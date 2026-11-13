@@ -6,6 +6,7 @@ import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -20,6 +21,7 @@ import org.sopt.collaboration.domain.application.repository.ApplicationRepositor
 import org.sopt.collaboration.domain.jobposting.dto.JobPostingResponse;
 import org.sopt.collaboration.domain.jobposting.dto.SearchJobPostingRequest;
 import org.sopt.collaboration.domain.jobposting.dto.SearchJobPostingResponse;
+import org.sopt.collaboration.domain.jobposting.entity.DeadlineType;
 import org.sopt.collaboration.domain.jobposting.entity.JobKeyword;
 import org.sopt.collaboration.domain.jobposting.entity.JobPosting;
 import org.sopt.collaboration.domain.jobposting.entity.JobPostingStatus;
@@ -51,10 +53,29 @@ public class JobPostingService {
     private final UserKeywordRepository userKeywordRepository;
 
     public List<JobPostingResponse> getViewedJobPostings(Long userId, int size) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
+        User user = findUser(userId);
         List<JobPosting> jobPostings = jobPostingRepository.findAllByIsViewedTrueOrderByIdDesc(Limit.of(size));
+        return toResponses(user, jobPostings);
+    }
+
+    // 모집 중이고 아직 마감되지 않은 날짜 마감 공고. 채용 시 마감 공고는 마감일이 없어 제외한다
+    public List<JobPostingResponse> getDeadlineSoonJobPostings(Long userId, int size) {
+        User user = findUser(userId);
+        List<JobPosting> jobPostings = jobPostingRepository.findDeadlineSoon(
+                JobPostingStatus.OPEN,
+                DeadlineType.DATE,
+                LocalDateTime.now(),
+                Limit.of(size)
+        );
+        return toResponses(user, jobPostings);
+    }
+
+    private User findUser(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    private List<JobPostingResponse> toResponses(User user, List<JobPosting> jobPostings) {
         if (jobPostings.isEmpty()) {
             return List.of();
         }
@@ -62,9 +83,9 @@ public class JobPostingService {
         // 공고 수와 관계없이 키워드·지원 내역을 각각 쿼리 1번으로 조회한다
         List<Long> jobPostingIds = toIds(jobPostings);
         Map<Long, List<Keyword>> keywordsByJobPosting = findKeywordsByJobPosting(jobPostingIds);
-        Set<Long> myKeywordIds = new HashSet<>(userKeywordRepository.findKeywordIdsByUserId(userId));
+        Set<Long> myKeywordIds = new HashSet<>(userKeywordRepository.findKeywordIdsByUserId(user.getId()));
         Map<Long, Application> applicationByJobPosting = applicationRepository
-                .findAllByUserIdAndJobPostingIdIn(userId, jobPostingIds)
+                .findAllByUserIdAndJobPostingIdIn(user.getId(), jobPostingIds)
                 .stream()
                 .collect(toMap(application -> application.getJobPosting().getId(), Function.identity()));
 
