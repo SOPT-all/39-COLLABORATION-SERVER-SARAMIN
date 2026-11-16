@@ -26,6 +26,16 @@ public class UserController {
     private final UserService userService;
 
     @Operation(
+            summary = "보유 서류 체크 상태 조회",
+            description = "마지막으로 저장된 이력서·자기소개서·경력기술서 보유 체크 상태를 조회한다. "
+                    + "홈 진입·새로고침 시 체크박스 초기값으로 사용하며, 응답 형식은 보유 서류 체크 변경과 같다."
+    )
+    @GetMapping("/me/documents")
+    public ApiResponse<UserDocumentResponse> getDocuments() {
+        return ApiResponse.success(userService.getDocuments(CurrentUser.ID));
+    }
+
+    @Operation(
             summary = "보유 서류 체크 변경",
             description = "이력서·자기소개서·경력기술서 보유 체크 상태를 변경한다. "
                     + "세 값 모두 현재 체크 상태를 담아 보내야 하며, 변경된 체크 상태를 그대로 돌려준다."
