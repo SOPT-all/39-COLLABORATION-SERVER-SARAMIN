@@ -22,13 +22,22 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserKeywordRepository userKeywordRepository;
 
+    // 마지막으로 저장된 보유 서류 체크 상태. 홈 진입·새로고침 시 체크박스 초기값으로 쓴다
+    public UserDocumentResponse getDocuments(Long userId) {
+        return UserDocumentResponse.from(findUser(userId));
+    }
+
     // 보유 서류 체크 상태만 갱신한다. 공고별 지원 가능 여부는 공고 목록 API가 계산한다
     @Transactional
     public UserDocumentResponse updateDocuments(Long userId, UpdateUserDocumentRequest request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        User user = findUser(userId);
         user.updateDocuments(request.hasResume(), request.hasCoverLetter(), request.hasCareer());
         return UserDocumentResponse.from(user);
+    }
+
+    private User findUser(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 
     public List<KeywordResponse> getMyKeywords(Long userId) {

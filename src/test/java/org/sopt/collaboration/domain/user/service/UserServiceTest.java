@@ -155,4 +155,51 @@ class UserServiceTest {
                     .isEqualTo(ErrorCode.USER_NOT_FOUND);
         }
     }
+
+    @Nested
+    @DisplayName("보유 서류 체크 상태 조회")
+    class GetDocuments {
+
+        @Test
+        @DisplayName("마지막으로 저장된 서류 체크 상태를 반환한다")
+        void 저장된_체크_상태를_반환한다() {
+            // given
+            User user = userRepository.save(User.create(true, false, true));
+            userService.updateDocuments(user.getId(), new UpdateUserDocumentRequest(false, true, true));
+            entityManager.flush();
+            entityManager.clear();
+
+            // when
+            UserDocumentResponse result = userService.getDocuments(user.getId());
+
+            // then
+            assertThat(result).isEqualTo(new UserDocumentResponse(false, true, true));
+        }
+
+        @Test
+        @DisplayName("저장된 값이 없으면 보유하지 않은 것으로 반환한다")
+        void 저장된_값이_없으면_false로_반환한다() {
+            // given
+            User user = userRepository.save(User.create(null, null, null));
+
+            // when
+            UserDocumentResponse result = userService.getDocuments(user.getId());
+
+            // then
+            assertThat(result).isEqualTo(new UserDocumentResponse(false, false, false));
+        }
+
+        @Test
+        @DisplayName("사용자가 없으면 USER_NOT_FOUND 예외를 던진다")
+        void 사용자가_없으면_예외를_던진다() {
+            // given
+            Long notExistUserId = Long.MAX_VALUE;
+
+            // when & then
+            assertThatThrownBy(() -> userService.getDocuments(notExistUserId))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting(e -> ((BusinessException) e).getErrorCode())
+                    .isEqualTo(ErrorCode.USER_NOT_FOUND);
+        }
+    }
 }
